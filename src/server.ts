@@ -1,6 +1,7 @@
 import { Router, MethodMapping } from "./router";
 import { OpenrpcDocument as OpenRPC } from "@open-rpc/meta-schema";
 import Transports, { TransportOptions, TransportClasses, TransportNames } from "./transports";
+import ServerTransport from './transports/server-transport'
 
 interface TransportConfig {
   type: TransportNames;
@@ -17,9 +18,14 @@ export interface ServerOptions {
   methodMapping?: MethodMapping | MockModeOptions;
 }
 
+interface ServerTransportLike extends ServerTransport {
+  start: () => void;
+  [x: string]: any;
+}
+
 export default class Server {
   private routers: Router[] = [];
-  private transports: TransportClasses[] = [];
+  private transports: ServerTransportLike[] = [];
 
   constructor(options: ServerOptions) {
     if (options.methodMapping) {
@@ -37,8 +43,7 @@ export default class Server {
   }
 
   public addTransport(transportType: TransportNames, transportOptions: TransportOptions) {
-    const TransportClass = Transports[transportType];
-
+    const TransportClass = Transports[transportType]
     console.log(`Adding Transport of the type ${transportType} on port ${transportOptions.port}`);
 
     if (TransportClass === undefined) {
@@ -47,6 +52,10 @@ export default class Server {
 
     const transport = new TransportClass(transportOptions);
 
+    return this.addTransportInstance(transport);
+  }
+
+  public addTransportInstance(transport: ServerTransportLike) {
     this.routers.forEach((router) => {
       transport.addRouter(router);
     });
@@ -70,6 +79,7 @@ export default class Server {
 
   public start() {
     this.transports.forEach((transport) => transport.start());
+    // this.transports.forEach((transport) => 'start' in transport ? transport.start() : null);
   }
 
 }

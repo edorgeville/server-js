@@ -191,7 +191,7 @@ const wsTransport = new WebSocketServerTransport(webSocketOptions); // Accepts h
 const server = new Server();
 server.start();
 
-server.addTransport(httpsTransport); // will be started immediately
+server.addTransport('httpsTransport'); // will be started immediately
 server.setRouter(router);
 server.addTransports([ wsTransport, wsFromHttpsTransport, httpsTransport ]); // will be started immediately.
 ```
